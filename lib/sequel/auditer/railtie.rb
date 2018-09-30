@@ -16,6 +16,11 @@ module Sequel
         app.middleware.use Sequel::Auditer::Middleware
       end
       attr_accessor :env
+	  
+	  def self.user
+		return env['warden'].user if env && env.key?('warden')
+		nil
+	  end
     end
   end
 end

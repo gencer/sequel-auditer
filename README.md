@@ -63,7 +63,7 @@ which should output something like this:
 
 ```bash
 ....
-rake audited:migrate:install      # Installs Sequel::Audited migration, but does not run it.
+rake audited:migrate:install      # Installs Sequel::auditer migration, but does not run it.
 ....
 ```
 
@@ -79,6 +79,9 @@ finally run db:migrate to update your DB.
 bundle exec rake db:migrate
 ```
 
+## Devise
+
+This gem will try to get user from warden based authentications. When available, auditer will be fetched from warden, otherwise global function will be fired.
 
 
 ### IMPORTANT SIDENOTE!
@@ -103,16 +106,16 @@ have audits (versions) for.
 
 ```ruby
 # auditing single model
-Post.plugin :audited
+Post.plugin :auditer
 
 # auditing all models. NOT RECOMMENDED!
-Sequel::Model.plugin :audited
+Sequel::Model.plugin :auditer
 ```
 
-By default this will audit / version all columns on the model, **except** the default ignored columns configured in `Sequel::Audited.audited_default_ignored_columns` (see [Configuration Options](#configuration-options) below).
+By default this will audit / version all columns on the model, **except** the default ignored columns configured in `Sequel::auditer.audited_default_ignored_columns` (see [Configuration Options](#configuration-options) below).
 
 
-#### `plugin(:audited)`
+#### `plugin(:auditer)`
 
 ```ruby
 # Given a Post model with these columns:
@@ -120,19 +123,19 @@ By default this will audit / version all columns on the model, **except** the de
 
 # Auditing all columns*
 
-  Post.plugin :audited
+  Post.plugin :auditer
 
     #=> [:id, :category_id, :title, :body, :author_id] # audited columns
     #=> [:created_at, :updated_at]  # ignored columns
 ```
 <br>
 
-#### `plugin(:audited, :only => [...])`
+#### `plugin(:auditer, :only => [...])`
 
 ```ruby
 # Auditing a Single column
 
-  Post.plugin :audited, only: [:title]
+  Post.plugin :auditer, only: [:title]
 
     #=> [:title] # audited columns
     #=> [:id, :category_id, :body, :author_id, :created_at, :updated_at] # ignored columns
@@ -140,27 +143,27 @@ By default this will audit / version all columns on the model, **except** the de
 
 # Auditing Multiple columns
 
-  Post.plugin :audited, only: [:title, :body]
+  Post.plugin :auditer, only: [:title, :body]
     #=> [:title, :body] # audited columns
     #=> [:id, :category_id, :author_id, :created_at, :updated_at] # ignored columns
 
 ```
 <br>
 
-#### `plugin(:audited, :except => [...])`
+#### `plugin(:auditer, :except => [...])`
 
 **NOTE!** this option does NOT ignore the default ignored columns, so use with care.
 
 ```ruby
 # Auditing all columns except specified columns
 
-  Post.plugin :audited, except: [:title]
+  Post.plugin :auditer, except: [:title]
 
     #=> [:id, :category_id, :author_id, :created_at, :updated_at] # audited columns
     #=> [:title] # ignored columns
 
 
-  Post.plugin :audited, except: [:title, :author_id]
+  Post.plugin :auditer, except: [:title, :author_id]
 
     #=> [:id, :category_id, :created_at, :updated_at] # audited columns
     #=> [:title, :author_id] # ignored columns
@@ -283,7 +286,7 @@ This way you can **easily track what was created, changed or deleted** and **who
 
 ### A) Global configuration options
 
-#### `Sequel::Audited.audited_current_user_method`
+#### `Sequel::auditer.audited_current_user_method`
 
 Sets the name of the global method that provides the current user object.
 Default is: `:current_user`.
@@ -291,7 +294,7 @@ Default is: `:current_user`.
 You can easily change the name of this method by calling:
 
 ```ruby
-Sequel::Audited.audited_current_user_method = :audited_user
+Sequel::auditer.audited_current_user_method = :auditer_user
 ```
 
 **Note!** the name of the function must be given as a symbol.
@@ -300,7 +303,7 @@ So if you want to customize the modifier per model you can do that here.
 
 <br>
 
-#### `Sequel::Audited.audited_additional_info_method`
+#### `Sequel::auditer.audited_additional_info_method`
 
 Sets the name of the global method that provides the additional info object (Hash).
 Default is: `:additional_info`.
@@ -308,7 +311,7 @@ Default is: `:additional_info`.
 You can easily change the name of this method by calling:
 
 ```ruby
-Sequel::Audited.audited_additional_info_method = :additional_info
+Sequel::auditer.audited_additional_info_method = :additional_info
 ```
 
 **Note!** the name of the function must be given as a symbol.
@@ -317,7 +320,7 @@ Sequel::Audited.audited_additional_info_method = :additional_info
 <br>
 
 
-#### `Sequel::Audited.audited_model_name`
+#### `Sequel::auditer.audited_model_name`
 
 Enables adding your own Audit model. Default is: `:AuditLog`  
 
@@ -328,7 +331,7 @@ Sequel:: Audited.audited_model_name = :YourCustomModel
 <br>
 
 
-#### `Sequel::Audited.audited_enabled`
+#### `Sequel::auditer.audited_enabled`
 
 Toggle for enabling / disabling auditing throughout all audited models.
 Default is: `true` i.e: enabled.  
@@ -336,7 +339,7 @@ Default is: `true` i.e: enabled.
 <br>
 
 
-#### `Sequel::Audited.audited_default_ignored_columns`
+#### `Sequel::auditer.audited_default_ignored_columns`
 
 An array of columns that are ignored by default. Default value is:
 
@@ -351,7 +354,7 @@ where an update triggers multiple copies of the record in the audit log.
 
 ```ruby
 # NOTE! array values must be given as symbols.
-Sequel::Audited.audited_default_ignored_columns = [:id, :mycolumn, ...]
+Sequel::auditer.audited_default_ignored_columns = [:id, :mycolumn, ...]
 ```
 
 <br>
@@ -378,7 +381,7 @@ def additional_info
 end
 
 # and set
-ClientProfile.plugin(:audited, :user_method => :current_client, :additional_info => :additional_info)
+ClientProfile.plugin(:auditer, :user_method => :current_client, :additional_info => :additional_info)
 
 # then the user info will be taken from DB[:clients].
  #<Client @values={:id=>99,:username=>"happyclient"... }>
@@ -461,14 +464,14 @@ joe.audited_versions(:associated_type => Post)
 
 ## Instance Mehtods
 
-When you active `.plugin(:audited)` in your model, you get these methods:
+When you active `.plugin(:auditer)` in your model, you get these methods:
 
 
 ### `.versions`
 
 ```ruby
 class Post < Sequel::Model
-  plugin :audited   # options here
+  plugin :auditer   # options here
 end
 
 # Returns this post's versions.

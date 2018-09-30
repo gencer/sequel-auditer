@@ -31,13 +31,24 @@ class AuditLog < Sequel::Model
   #
   # # NOTE! this allows overriding the default value on a per audited model
   def audit_user
-    m = Kernel.const_get(associated_type)
-    m.send(m.auditer_current_user_method) || send(m.auditer_current_user_method)
+    user = ::Sequel::Auditer::Railtie.user
+    return user if !user.nil?
+	
+	begin
+		m = Kernel.const_get(associated_type)
+		m.send(m.auditer_current_user_method) || send(m.auditer_current_user_method)
+	rescue
+		nil
+	end
   end
   
   def audit_additional_info
-    m = Kernel.const_get(associated_type)
-    m.send(m.auditer_additional_info_method) || send(m.auditer_additional_info_method)
+	begin
+		m = Kernel.const_get(associated_type)
+		m.send(m.auditer_additional_info_method) || send(m.	auditer_additional_info_method)
+	rescue
+		nil
+	end
   end
 
 end
