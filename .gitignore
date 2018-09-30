@@ -10,3 +10,4 @@
 spec/sequel-audited-test.db
 .env.test
 rubocop
+*.gem
