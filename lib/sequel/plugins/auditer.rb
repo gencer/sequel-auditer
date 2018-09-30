@@ -26,7 +26,7 @@ class AuditLog < Sequel::Model
 
   # private
 
-  # Obtains the `current_user` based upon the `:audited_current_user_method' value set in the
+  # Obtains the `current_user` based upon the `:auditer_current_user_method' value set in the
   # audited model, either via defaults or via :user_method config options
   #
   # # NOTE! this allows overriding the default value on a per audited model
@@ -50,31 +50,31 @@ module Sequel
     #
     #
     # All fields
-    #   plugin :audited
+    #   plugin :auditer
     #     #=> [:category_id, :title, :body, :author_id]  # NB! excluding @default_ignore_attrs
     #     #=> [:id, :created_at, :updated_at]
     #
     # Single field
-    #   plugin :audited, only: :title
-    #   plugin :audited, only: [:title]
+    #   plugin :auditer, only: :title
+    #   plugin :auditer, only: [:title]
     #     #=> [:title]
     #     #+> [:id, :category_id, :body, :author_id, :created_at, :updated_at] # ignored fields
     #
     # Multiple fields
-    #   plugin :audited, only: [:title, :body]
+    #   plugin :auditer, only: [:title, :body]
     #     #=> [:title, :body] # tracked fields
     #     #=> [:id, :category_id, :author_id, :created_at, :updated_at] # ignored fields
     #
     #
     # All fields except certain fields
-    #   plugin :audited, except: :title
-    #   plugin :audited, except: [:title]
+    #   plugin :auditer, except: :title
+    #   plugin :auditer, except: [:title]
     #     #=> [:id, :category_id, :author_id, :created_at, :updated_at] # tracked fields
     #     #=> [:title] # ignored fields
     #
     #
     #
-    module Audited
+    module Auditer
 
       # called when
       def self.configure(model, opts = {})
@@ -130,13 +130,13 @@ module Sequel
       #
       module ClassMethods
 
-        attr_accessor :audited_default_ignored_columns, :audited_current_user_method, :audited_additional_info_method
+        attr_accessor :auditer_default_ignored_columns, :auditer_current_user_method, :auditer_additional_info_method
         # The holder of ignored columns
-        attr_reader :audited_ignored_columns
+        attr_reader :auditer_ignored_columns
         # The holder of columns that should be audited
-        attr_reader :audited_included_columns
+        attr_reader :auditer_included_columns
 
-        attr_accessor :audited_reference_method
+        attr_accessor :auditer_reference_method
 
 
         Plugins.inherited_instance_variables(self,
@@ -200,14 +200,14 @@ module Sequel
         end
 
         def audit_model_name
-          ::Sequel::Audited.audited_model_name
+          ::Sequel::Auditer.audited_model_name
         end
 
         def set_default_ignored_columns(opts)
           if opts[:default_ignored_columns]
             @audited_default_ignored_columns = opts[:default_ignored_columns]
           else
-            @audited_default_ignored_columns = ::Sequel::Audited.audited_default_ignored_columns
+            @audited_default_ignored_columns = ::Sequel::Auditer.audited_default_ignored_columns
           end
         end
 
@@ -215,7 +215,7 @@ module Sequel
           if opts[:user_method]
             @audited_current_user_method = opts[:user_method]
           else
-            @audited_current_user_method = ::Sequel::Audited.audited_current_user_method
+            @audited_current_user_method = ::Sequel::Auditer.audited_current_user_method
           end
         end
 
@@ -223,7 +223,7 @@ module Sequel
           if opts[:additional_info]
             @audited_additional_info_method = opts[:additional_info]
           else
-            @audited_additional_info_method = ::Sequel::Audited.audited_additional_info_method
+            @audited_additional_info_method = ::Sequel::Auditer.audited_additional_info_method
           end
         end
 
@@ -272,11 +272,11 @@ module Sequel
         # extract audited values only
         def audited_values(event)
           vals = case event
-          when Sequel::Audited::CREATE
+          when Sequel::Auditer::CREATE
             self.values
-          when Sequel::Audited::UPDATE
+          when Sequel::Auditer::UPDATE
             (column_changes.empty? ? previous_changes : column_changes)
-          when Sequel::Audited::DESTROY
+          when Sequel::Auditer::DESTROY
             self.values
           end
           vals.except(*model.audited_default_ignored_columns)
@@ -296,17 +296,17 @@ module Sequel
 
         def after_create
           super
-          add_audited(Sequel::Audited::CREATE)
+          add_audited(Sequel::Auditer::CREATE)
         end
 
         def after_update
           super
-          add_audited(Sequel::Audited::UPDATE)
+          add_audited(Sequel::Auditer::UPDATE)
         end
 
         def after_destroy
           super
-          add_audited(Sequel::Audited::DESTROY)
+          add_audited(Sequel::Auditer::DESTROY)
         end
       end
     end
