@@ -283,7 +283,7 @@ module Sequel
         end
 
         def add_audited(event)
-          changed = audited_values(event)
+          changed = auditer_values(event)
           unless changed.blank?
             add_version(
               event:      event,
@@ -293,7 +293,7 @@ module Sequel
         end
 
         ### CALLBACKS ###
-
+		
         def after_create
           super
           add_audited(Sequel::Auditer::CREATE)
