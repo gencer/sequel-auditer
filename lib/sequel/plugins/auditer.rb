@@ -104,7 +104,7 @@ module Sequel
           else # except:
             # all columns minus any excepted columns and default ignored columns
             included_columns = [
-              [columns - [except].flatten].flatten - @audited_default_ignored_columns
+              [columns - [except].flatten].flatten - @auditer_default_ignored_columns
             ].flatten.uniq
 
             # except_columns = except.empty? ? [] : [except].flatten
@@ -112,8 +112,8 @@ module Sequel
             # excluded_columns = [columns - [except_columns, included_columns].flatten].flatten.uniq
           end
 
-          @audited_included_columns = included_columns
-          @audited_ignored_columns  = excluded_columns
+          @auditer_included_columns = included_columns
+          @auditer_ignored_columns  = excluded_columns
 
           # each included model will have an associated versions
           one_to_many(
@@ -140,12 +140,12 @@ module Sequel
 
 
         Plugins.inherited_instance_variables(self,
-                                             :@audited_default_ignored_columns => nil,
-                                             :@audited_current_user_method     => nil,
-                                             :@audited_additional_info_method  => nil,
-                                             :@audited_included_columns        => nil,
-                                             :@audited_ignored_columns         => nil,
-                                             :@audited_reference_method        => nil
+                                             :@auditer_default_ignored_columns => nil,
+                                             :@auditer_current_user_method     => nil,
+                                             :@auditer_additional_info_method  => nil,
+                                             :@auditer_included_columns        => nil,
+                                             :@auditer_ignored_columns         => nil,
+                                             :@auditer_reference_method        => nil
                                             )
 
         def non_audited_columns
@@ -153,7 +153,7 @@ module Sequel
         end
 
         def audited_columns
-          @audited_columns ||= columns - @audited_ignored_columns
+          @auditer_columns ||= columns - @auditer_ignored_columns
         end
 
         # def default_ignored_attrs
@@ -205,31 +205,31 @@ module Sequel
 
         def set_default_ignored_columns(opts)
           if opts[:default_ignored_columns]
-            @audited_default_ignored_columns = opts[:default_ignored_columns]
+            @auditer_default_ignored_columns = opts[:default_ignored_columns]
           else
-            @audited_default_ignored_columns = ::Sequel::Auditer.audited_default_ignored_columns
+            @auditer_default_ignored_columns = ::Sequel::Auditer.audited_default_ignored_columns
           end
         end
 
         def set_user_method(opts)
           if opts[:user_method]
-            @audited_current_user_method = opts[:user_method]
+            @auditer_current_user_method = opts[:user_method]
           else
-            @audited_current_user_method = ::Sequel::Auditer.audited_current_user_method
+            @auditer_current_user_method = ::Sequel::Auditer.audited_current_user_method
           end
         end
 
         def set_additional_info_method(opts)
           if opts[:additional_info]
-            @audited_additional_info_method = opts[:additional_info]
+            @auditer_additional_info_method = opts[:additional_info]
           else
-            @audited_additional_info_method = ::Sequel::Auditer.audited_additional_info_method
+            @auditer_additional_info_method = ::Sequel::Auditer.audited_additional_info_method
           end
         end
 
         def set_reference_method(opts)
           if opts[:reference_method]
-            @audited_reference_method = opts[:reference_method]
+            @auditer_reference_method = opts[:reference_method]
           end
         end
 
