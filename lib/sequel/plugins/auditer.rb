@@ -32,12 +32,12 @@ class AuditLog < Sequel::Model
   # # NOTE! this allows overriding the default value on a per audited model
   def audit_user
     m = Kernel.const_get(associated_type)
-    m.send(m.audited_current_user_method) || send(m.audited_current_user_method)
+    m.send(m.auditer_current_user_method) || send(m.auditer_current_user_method)
   end
   
   def audit_additional_info
     m = Kernel.const_get(associated_type)
-    m.send(m.audited_additional_info_method) || send(m.audited_additional_info_method)
+    m.send(m.auditer_additional_info_method) || send(m.auditer_additional_info_method)
   end
 
 end
@@ -149,10 +149,10 @@ module Sequel
                                             )
 
         def non_audited_columns
-          columns - audited_columns
+          columns - auditer_columns
         end
 
-        def audited_columns
+        def auditer_columns
           @auditer_columns ||= columns - @auditer_ignored_columns
         end
 
@@ -167,27 +167,27 @@ module Sequel
         #
         # returns true / false if any audits have been made
         #
-        #   Post.audited_versions?   #=> true / false
+        #   Post.auditer_versions?   #=> true / false
         #
-        def audited_versions?
+        def auditer_versions?
           audit_model.where(associated_type: name.to_s).count >= 1
         end
 
         # grab all audits for a particular model based upon filters
         #
-        #   Posts.audited_versions(:model_pk => 123)
+        #   Posts.auditer_versions(:model_pk => 123)
         #     #=> filtered by primary_key value
         #
-        #   Posts.audited_versions(:user_id => 88)
+        #   Posts.auditer_versions(:user_id => 88)
         #     #=> filtered by user name
         #
-        #   Posts.audited_versions(:created_at < Date.today - 2)
+        #   Posts.auditer_versions(:created_at < Date.today - 2)
         #     #=> filtered to last two (2) days only
         #
-        #   Posts.audited_versions(:created_at > Date.today - 7)
+        #   Posts.auditer_versions(:created_at > Date.today - 7)
         #     #=> filtered to older than last seven (7) days
         #
-        def audited_versions(opts = {})
+        def auditer_versions(opts = {})
           audit_model.where(opts.merge(associated_type: name.to_s)).order(:version).all
         end
 
@@ -200,14 +200,14 @@ module Sequel
         end
 
         def audit_model_name
-          ::Sequel::Auditer.audited_model_name
+          ::Sequel::Auditer.auditer_model_name
         end
 
         def set_default_ignored_columns(opts)
           if opts[:default_ignored_columns]
             @auditer_default_ignored_columns = opts[:default_ignored_columns]
           else
-            @auditer_default_ignored_columns = ::Sequel::Auditer.audited_default_ignored_columns
+            @auditer_default_ignored_columns = ::Sequel::Auditer.auditer_default_ignored_columns
           end
         end
 
@@ -215,7 +215,7 @@ module Sequel
           if opts[:user_method]
             @auditer_current_user_method = opts[:user_method]
           else
-            @auditer_current_user_method = ::Sequel::Auditer.audited_current_user_method
+            @auditer_current_user_method = ::Sequel::Auditer.auditer_current_user_method
           end
         end
 
@@ -223,7 +223,7 @@ module Sequel
           if opts[:additional_info]
             @auditer_additional_info_method = opts[:additional_info]
           else
-            @auditer_additional_info_method = ::Sequel::Auditer.audited_additional_info_method
+            @auditer_additional_info_method = ::Sequel::Auditer.auditer_additional_info_method
           end
         end
 
@@ -270,7 +270,7 @@ module Sequel
         private
 
         # extract audited values only
-        def audited_values(event)
+        def auditer_values(event)
           vals = case event
           when Sequel::Auditer::CREATE
             self.values
@@ -279,7 +279,7 @@ module Sequel
           when Sequel::Auditer::DESTROY
             self.values
           end
-          vals.except(*model.audited_default_ignored_columns)
+          vals.except(*model.auditer_default_ignored_columns)
         end
 
         def add_audited(event)
