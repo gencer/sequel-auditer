@@ -1,5 +1,5 @@
 require "sequel/auditer/railtie"
-require "sequel/auditer/plugins/auditer"
+require "sequel/plugins/auditer"
 require "sequel/auditer/version"
 
 
