@@ -12,7 +12,7 @@ module Sequel
     end
 	
     class Railtie < ::Rails::Engine
-      initializer "sequel-audited_railtie.configure_rails_initialization" do |app|
+      initializer "sequel-auditer_railtie.configure_rails_initialization" do |app|
         app.middleware.use Sequel::Auditer::Middleware
       end
       attr_accessor :env
