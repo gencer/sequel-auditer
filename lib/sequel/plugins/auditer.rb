@@ -2,7 +2,7 @@ require_relative '../auditer'
 
 class AuditLog < Sequel::Model
   # handle versioning of audited records
-  plugin :list, field: :version, scope: [:associated_type, :associated_id]
+  plugin :list, field: :version, scope: %i[associated_type associated_id]
   plugin :timestamps
   plugin :polymorphic
 
@@ -15,12 +15,12 @@ class AuditLog < Sequel::Model
     if u = audit_user
       self.modifier = u
     end
-	
-	# grab any additional info if any
-	if i = audit_additional_info
+
+    # grab any additional info if any
+    if i = audit_additional_info
       self.additional_info = i
-    end
-	
+      end
+
     super
   end
 
@@ -32,30 +32,27 @@ class AuditLog < Sequel::Model
   # # NOTE! this allows overriding the default value on a per audited model
   def audit_user
     user = ::Sequel::Auditer::Railtie.user
-    return user if !user.nil?
-	
-	begin
-		m = Kernel.const_get(associated_type)
-		m.send(m.auditer_current_user_method) || send(m.auditer_current_user_method)
-	rescue
-		nil
-	end
-  end
-  
-  def audit_additional_info
-	begin
-		m = Kernel.const_get(associated_type)
-		m.send(m.auditer_additional_info_method) || send(m.	auditer_additional_info_method)
-	rescue
-		nil
-	end
+
+    m = Kernel.const_get(associated_type)
+    u = m.send(m.auditer_current_user_method) || send(m.auditer_current_user_method)
+    return u unless u.nil?
+    return user if u.nil? && !user.nil?
+
+    nil
+  rescue StandardError
+    nil
   end
 
+  def audit_additional_info
+    m = Kernel.const_get(associated_type)
+    m.send(m.auditer_additional_info_method) || send(m. auditer_additional_info_method)
+  rescue StandardError
+    nil
+  end
 end
 
 module Sequel
   module Plugins
-
     # Given a Post model with these fields:
     #   [:id, :category_id, :title, :body, :author_id, :created_at, :updated_at]
     #
@@ -86,7 +83,6 @@ module Sequel
     #
     #
     module Auditer
-
       # called when
       def self.configure(model, opts = {})
         model.instance_eval do
@@ -107,12 +103,7 @@ module Sequel
           only    = opts.fetch(:only, [])
           except  = opts.fetch(:except, [])
 
-          unless only.empty?
-            # we should only track the provided column
-            included_columns = [only].flatten
-            # subtract the 'only' columns from all columns to get excluded_columns
-            excluded_columns = columns - included_columns
-          else # except:
+          if only.empty? # except:
             # all columns minus any excepted columns and default ignored columns
             included_columns = [
               [columns - [except].flatten].flatten - @auditer_default_ignored_columns
@@ -121,6 +112,11 @@ module Sequel
             # except_columns = except.empty? ? [] : [except].flatten
             excluded_columns = [columns - included_columns].flatten.uniq
             # excluded_columns = [columns - [except_columns, included_columns].flatten].flatten.uniq
+          else
+            # we should only track the provided column
+            included_columns = [only].flatten
+            # subtract the 'only' columns from all columns to get excluded_columns
+            excluded_columns = columns - included_columns
           end
 
           @auditer_included_columns = included_columns
@@ -132,15 +128,10 @@ module Sequel
             class: audit_model_name,
             as: 'associated'
           )
-
         end
-
-
       end
 
-      #
       module ClassMethods
-
         attr_accessor :auditer_default_ignored_columns, :auditer_current_user_method, :auditer_additional_info_method
         # The holder of ignored columns
         attr_reader :auditer_ignored_columns
@@ -149,15 +140,13 @@ module Sequel
 
         attr_accessor :auditer_reference_method
 
-
         Plugins.inherited_instance_variables(self,
                                              :@auditer_default_ignored_columns => nil,
                                              :@auditer_current_user_method     => nil,
                                              :@auditer_additional_info_method  => nil,
                                              :@auditer_included_columns        => nil,
                                              :@auditer_ignored_columns         => nil,
-                                             :@auditer_reference_method        => nil
-                                            )
+                                             :@auditer_reference_method        => nil)
 
         def non_audited_columns
           columns - auditer_columns
@@ -202,9 +191,7 @@ module Sequel
           audit_model.where(opts.merge(associated_type: name.to_s)).order(:version).all
         end
 
-
         private
-
 
         def audit_model
           const_get(audit_model_name)
@@ -223,11 +210,7 @@ module Sequel
         end
 
         def set_user_method(opts)
-          if opts[:user_method]
-            @auditer_current_user_method = opts[:user_method]
-          else
-            @auditer_current_user_method = ::Sequel::Auditer.auditer_current_user_method
-          end
+          @auditer_current_user_method = opts[:user_method] || ::Sequel::Auditer.auditer_current_user_method
         end
 
         def set_additional_info_method(opts)
@@ -243,13 +226,9 @@ module Sequel
             @auditer_reference_method = opts[:reference_method]
           end
         end
-
       end
 
-
-      #
       module InstanceMethods
-
         # Returns who put the post into its current state.
         #
         #   post.blame  # => 'joeblogs'
@@ -262,7 +241,7 @@ module Sequel
           v = versions.last unless versions.empty?
           v ? v.modifier : 'not audited'
         end
-        alias_method :last_audited_by, :blame
+        alias last_audited_by blame
 
         # Returns who put the post into its current state.
         #
@@ -276,19 +255,19 @@ module Sequel
           v = versions.last unless versions.empty?
           v ? v.created_at : 'not audited'
         end
-        alias_method :last_audited_on, :last_audited_at
+        alias last_audited_on last_audited_at
 
         private
 
         # extract audited values only
         def auditer_values(event)
           vals = case event
-          when Sequel::Auditer::CREATE
-            self.values
-          when Sequel::Auditer::UPDATE
-            (column_changes.empty? ? previous_changes : column_changes)
-          when Sequel::Auditer::DESTROY
-            self.values
+                 when Sequel::Auditer::CREATE
+                   values
+                 when Sequel::Auditer::UPDATE
+                   (column_changes.empty? ? previous_changes : column_changes)
+                 when Sequel::Auditer::DESTROY
+                   values
           end
           vals.except(*model.auditer_default_ignored_columns)
         end
@@ -304,7 +283,7 @@ module Sequel
         end
 
         ### CALLBACKS ###
-		
+
         def after_create
           super
           add_audited(Sequel::Auditer::CREATE)
