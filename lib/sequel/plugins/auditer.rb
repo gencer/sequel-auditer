@@ -7,8 +7,9 @@ class AuditLog < Sequel::Model
   plugin :polymorphic
 
   # TODO: see if we should add these
-  many_to_one :associated, polymorphic: true
-  many_to_one :modifier,   polymorphic: true
+  many_to_one :associated, 			polymorphic: true
+  many_to_one :modifier,   			polymorphic: true
+  many_to_one :resource_owner,      polymorphic: true
 
   def before_validation
     # grab the current user
@@ -19,7 +20,12 @@ class AuditLog < Sequel::Model
     # grab any additional info if any
     if i = audit_additional_info
       self.additional_info = i
-      end
+    end
+	
+	# grab resource owner
+	# if o = audit_owner
+	  # self.resource_owner = o
+	# end
 
     super
   end
@@ -45,9 +51,15 @@ class AuditLog < Sequel::Model
 
   def audit_additional_info
     m = Kernel.const_get(associated_type)
-    m.send(m.auditer_additional_info_method) || send(m. auditer_additional_info_method)
+    m.send(m.auditer_additional_info_method) || send(m.auditer_additional_info_method)
   rescue StandardError
     nil
+  end
+
+  def audit_owner
+    m = Kernel.const_get(associated_type)
+	o = m.send(m.auditer_resource_owner_field) || send(m.auditer_resource_owner_field)
+	# abort o.inspect
   end
 end
 
@@ -97,6 +109,7 @@ module Sequel
           # specifically for the audited model on a per model basis
           set_user_method(opts)
           set_additional_info_method(opts)
+          set_owner_method(opts)
 
           set_reference_method(opts)
 
@@ -132,7 +145,7 @@ module Sequel
       end
 
       module ClassMethods
-        attr_accessor :auditer_default_ignored_columns, :auditer_current_user_method, :auditer_additional_info_method
+        attr_accessor :auditer_default_ignored_columns, :auditer_current_user_method, :auditer_additional_info_method, :auditer_resource_owner_field
         # The holder of ignored columns
         attr_reader :auditer_ignored_columns
         # The holder of columns that should be audited
@@ -144,6 +157,7 @@ module Sequel
                                              :@auditer_default_ignored_columns => nil,
                                              :@auditer_current_user_method     => nil,
                                              :@auditer_additional_info_method  => nil,
+                                             :@auditer_resource_owner_field    => nil,
                                              :@auditer_included_columns        => nil,
                                              :@auditer_ignored_columns         => nil,
                                              :@auditer_reference_method        => nil)
@@ -197,6 +211,10 @@ module Sequel
           const_get(audit_model_name)
         end
 
+        def resource_owner
+          const_get(audit_model_name)
+        end
+		
         def audit_model_name
           ::Sequel::Auditer.auditer_model_name
         end
@@ -211,6 +229,10 @@ module Sequel
 
         def set_user_method(opts)
           @auditer_current_user_method = opts[:user_method] || ::Sequel::Auditer.auditer_current_user_method
+        end
+		
+        def set_owner_method(opts)
+		  @auditer_resource_owner_field = opts[:owner_field] || ::Sequel::Auditer.auditer_resource_owner_field
         end
 
         def set_additional_info_method(opts)
@@ -274,10 +296,18 @@ module Sequel
 
         def add_audited(event)
           changed = auditer_values(event)
+		  
+		  begin
+			res_owner = self.send(*model.auditer_resource_owner_field)
+		  rescue
+			res_owner = nil
+		  end
+		  
           unless changed.blank?
             add_version(
               event:      event,
-              changed:    changed
+              changed:    changed,
+			  resource_owner: res_owner
             )
           end
         end

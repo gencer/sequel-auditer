@@ -1,20 +1,17 @@
-require "sequel/auditer/railtie"
-require "sequel/auditer/version"
-
+require 'sequel/auditer/railtie'
+require 'sequel/auditer/version'
 
 module Sequel
-
-  #
   module Auditer
-
-    CREATE  = 'create'
-    UPDATE  = 'update'
-    DESTROY = 'destroy'
+    CREATE  = 'create'.freeze
+    UPDATE  = 'update'.freeze
+    DESTROY = 'destroy'.freeze
 
     # set the name of the global method that provides the current user. Default: :current_user
     @auditer_current_user_method      = :current_user
-	# set any additional info such as :ip, :user_agent, ...
+    # set any additional info such as :ip, :user_agent, ...
     @auditer_additional_info_method   = :additional_info
+    @auditer_resource_owner_field     = :owner_field
     # enable swapping of the Audit model
     @auditer_model_name               = :AuditLog
     # toggle for enabling / disabling auditing
@@ -28,10 +25,12 @@ module Sequel
     ]
 
     class << self
-      attr_accessor :auditer_current_user_method, :auditer_additional_info_method,
-					:auditer_model_name, :auditer_enabled,
-					:auditer_default_ignored_columns
+      attr_accessor :auditer_current_user_method,
+                    :auditer_additional_info_method,
+                    :auditer_model_name,
+                    :auditer_enabled,
+                    :auditer_default_ignored_columns,
+                    :auditer_resource_owner_field
     end
-
   end
 end

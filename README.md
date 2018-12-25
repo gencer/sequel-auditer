@@ -75,6 +75,23 @@ bundle exec rake db:migrate
 
 This gem will try to get user from warden based authentications. When available, auditer will be fetched from warden, otherwise global function will be fired.
 
+## Resource Owner and Modifier
+
+SequelAuditer allows you to store 2 types of user data.
+
+### Modifier
+
+Modifier is who changed the data. This can be user itself, staff member or admins.
+
+### Resource Owner
+
+Resource owner respresents modified data's owner. This is usually an user. So, you can browse audit logs based on resource owner id and see who is the modifier. This data came from target model. You need to specify user method in model like this:
+
+```ruby
+  plugin :auditer, additional_info: :additional_info, user_method: :global_user, owner_field: :user
+```
+
+Now, `:owner_field` is a field in `Folder` model. `:global_user` is a global function/method that came from somewhere else in our app. Something like `current_user`.
 
 ### IMPORTANT SIDENOTE!
 
@@ -229,6 +246,8 @@ cat.update(name: 'Ruby Sequel')
   :changed => "{\"name\":[\"Sequel\",\"Ruby Sequel\"],\"updated_at\":\"<timestamp>\"}",
   :version => 2,
   :modifier_id => 88,
+  :modifier_type => "Staff",
+  :resource_owner_id => 70,
   :modifier_type => "User",
   :additional_info => "",
   :created_at => <timestamp>
@@ -254,6 +273,8 @@ cat.delete
   :changed => "{\"id\":1,\"name\":\"Ruby Sequel\",\"created_at\":\"<timestamp>\",\"updated_at\":\"<timestamp>\"}",
   :version => 3,
   :modifier_id => 88,
+  :modifier_type => "Staff",
+  :resource_owner_id => 70,
   :modifier_type => "User",
   :additional_info => "",
   :created_at => <timestamp>
@@ -292,6 +313,22 @@ Sequel::auditer.audited_current_user_method = :auditer_user
 **Note!** the name of the function must be given as a symbol.
 **Note!!** it will first try to hit the method on the model (i.e. Post) itself first. Then it will hit the global method.<br>
 So if you want to customize the modifier per model you can do that here.
+
+<br>
+
+#### `Sequel::auditer.auditer_resource_owner_field`
+
+Sets the name of the model name (association) that provides the resource owner object.
+Default is: `nil`.
+
+You can easily change the name of this model by calling:
+
+```ruby
+Sequel::auditer.auditer_resource_owner_field = :user
+```
+
+**Note!** the name of the function must be given as a symbol.
+**Note!!** it will first try to hit the method on the model (i.e. Post) itself first. It won't hit global function.
 
 <br>
 
@@ -438,7 +475,7 @@ Posts.audited_versions(:created_at < Date.today - 2)
 
 
 
-2) Track all changes made by a user / modifier_group.
+1) Track all changes made by a user / modifier_group.
 
 ```ruby
 joe = User[88]
