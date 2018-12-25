@@ -7,14 +7,6 @@ and when the change was made.
 This plugin provides model auditing (a.k.a: record versioning) for DB scenarios when DB triggers
 are not possible. (ie: on a web app on Heroku).
 
-
-
-## Disclaimer
-
-This is still **work-in-progress**, and therefore **NOT production ready**, so **use with care**
-and test thoroughly before depending upon this gem for mission-critical stuff!
-You have been warned! No warranties and guarantees expressed or implied!
-
 <br>
 
 ----
