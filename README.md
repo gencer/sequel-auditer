@@ -7,12 +7,6 @@ and when the change was made.
 This plugin provides model auditing (a.k.a: record versioning) for DB scenarios when DB triggers
 are not possible. (ie: on a web app on Heroku).
 
-<br>
-
-----
-
-<br>
-
 ## Installation
 
 ### 1) Install the gem
@@ -102,9 +96,6 @@ Otherwise, you have to use `JSON.parse(@v.changed)` to convert it to a hash if a
 to use it.
 
 <br>
-
-----
-
 
 <a name="usage"></a>
 ## Usage
@@ -595,8 +586,6 @@ Not everything is perfect or fully formed, so this gem may be in need of the fol
 
   If you are running this on a free app on Heroku, with many and frequent updates, you might want
   to pay attention to this functionality as there's a 10,000 rows limit on Heroku.
-
-
 
 
 ## Development
