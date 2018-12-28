@@ -23,9 +23,9 @@ class AuditLog < Sequel::Model
     end
 	
 	# grab resource owner
-	# if o = audit_owner
-	  # self.resource_owner = o
-	# end
+	if o = audit_owner
+	  self.resource_owner = o
+	end
 
     super
   end
@@ -58,8 +58,7 @@ class AuditLog < Sequel::Model
 
   def audit_owner
     m = Kernel.const_get(associated_type)
-	o = m.send(m.auditer_resource_owner_field) || send(m.auditer_resource_owner_field)
-	# abort o.inspect
+	m.send(m.auditer_resource_owner_field) || send(m.auditer_resource_owner_field)
   end
 end
 
@@ -232,7 +231,7 @@ module Sequel
         end
 		
         def set_owner_method(opts)
-		  @auditer_resource_owner_field = opts[:owner_field] || ::Sequel::Auditer.auditer_resource_owner_field
+		  @auditer_resource_owner_field = opts[:owner_method] || ::Sequel::Auditer.auditer_resource_owner_field
         end
 
         def set_additional_info_method(opts)
@@ -297,17 +296,10 @@ module Sequel
         def add_audited(event)
           changed = auditer_values(event)
 		  
-		  begin
-			res_owner = self.send(*model.auditer_resource_owner_field)
-		  rescue
-			res_owner = nil
-		  end
-		  
           unless changed.blank?
             add_version(
               event:      event,
-              changed:    changed,
-			  resource_owner: res_owner
+              changed:    changed
             )
           end
         end

@@ -11,7 +11,7 @@ module Sequel
     @auditer_current_user_method      = :current_user
     # set any additional info such as :ip, :user_agent, ...
     @auditer_additional_info_method   = :additional_info
-    @auditer_resource_owner_field     = :owner_field
+    @auditer_resource_owner_method    = :owner_method
     # enable swapping of the Audit model
     @auditer_model_name               = :AuditLog
     # toggle for enabling / disabling auditing
