@@ -1,12 +1,12 @@
-namespace :audited do
+namespace :auditer do
   namespace :migrate do
     desc 'Installs Sequel::Audited migration, but does not run it'
     task :install do
       num = Dir["#{Dir.pwd}/db/migrate/*.rb"].sort.last[0, 3] ||= '001'
 
       FileUtils.cp(
-        "#{File.dirname(__FILE__)}/templates/audited_migration.rb",
-        "#{Dir.pwd}/db/migrate/#{num}_create_audited_table.rb"
+        "#{File.dirname(__FILE__)}/templates/auditer_migration.rb",
+        "#{Dir.pwd}/db/migrate/#{num}_create_auditer_table.rb"
       )
     end
 
