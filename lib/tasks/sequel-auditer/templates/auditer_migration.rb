@@ -1,5 +1,5 @@
 Sequel.migration do
-  # created by sequel-audited gem
+  # created by sequel-auditer gem
 
   change do
     create_table(:audit_logs) do

@@ -19,7 +19,7 @@ module Sequel
 
     # by default ignore these columns
     @auditer_default_ignored_columns  = [
-      # :id, :ref, :password, :password_hash,
+      :id, :ref, :password, :password_hash,
       :lock_version,
       :created_at, :updated_at, :created_on, :updated_on
     ]

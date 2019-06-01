@@ -49,14 +49,14 @@ which should output something like this:
 
 ```bash
 ....
-rake audited:migrate:install      # Installs Sequel::auditer migration, but does not run it.
+rake auditer:migrate:install      # Installs Sequel::auditer migration, but does not run it.
 ....
 ```
 
 Run the sequel_audit rake task:
 
 ```bash
-bundle exec rake audited:migrate:install
+bundle exec rake auditer:migrate:install
 ```
 After this you can comment out the rake task in your Rakefile until you need to update. And then  
 finally run db:migrate to update your DB.
@@ -65,7 +65,7 @@ finally run db:migrate to update your DB.
 bundle exec rake db:migrate
 ```
 
-## Devise
+## Using Devise (or warden-based authentication systems)
 
 This gem will try to get user from warden based authentications. When available, auditer will be fetched from warden, otherwise global function will be fired.
 
@@ -79,7 +79,7 @@ Modifier is who changed the data. This can be user itself, staff member or admin
 
 ### Resource Owner
 
-Resource owner respresents modified data's owner. This is usually an user. So, you can browse audit logs based on resource owner id and see who is the modifier. This data came from target model. You need to specify user method in model like this:
+Resource owner respresents modified data's owner. This is usually an user. So, you can browse audit logs based on resource owner id and see who is the modifier. You need to specify user method in model like this:
 
 ```ruby
   plugin :auditer, additional_info: :additional_info, user_method: :global_user, owner_method: :owner_user
@@ -238,7 +238,7 @@ cat.update(name: 'Ruby Sequel')
   :modifier_id => 88,
   :modifier_type => "Staff",
   :resource_owner_id => 70,
-  :modifier_type => "User",
+  :resource_owner_type => "User",
   :additional_info => "",
   :created_at => <timestamp>
 }>
@@ -265,7 +265,7 @@ cat.delete
   :modifier_id => 88,
   :modifier_type => "Staff",
   :resource_owner_id => 70,
-  :modifier_type => "User",
+  :resource_owner_type => "User",
   :additional_info => "",
   :created_at => <timestamp>
 }>
@@ -616,6 +616,7 @@ expected to adhere to the [Contributor Covenant](http://contributor-covenant.org
 
 &copy; Copyright Kematzy, 2015<br>
 &copy; Copyright jnylen, 2017
+&copy; Copyright gencer, 2018-2019
 
 Heavily inspired by:
 
